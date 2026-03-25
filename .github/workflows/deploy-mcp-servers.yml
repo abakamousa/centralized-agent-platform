@@ -1,0 +1,16 @@
+name: Deploy MCP Servers
+
+on:
+  push:
+    paths:
+      - "mcp-servers/**"
+      - ".github/workflows/deploy-mcp-servers.yml"
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: List MCP Servers
+        run: ls -1 mcp-servers

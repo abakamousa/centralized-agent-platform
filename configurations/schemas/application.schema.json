@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Application Configuration",
+  "type": "object",
+  "required": ["application_id", "display_name", "workflow", "tools"],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "system_prompt": {
+      "type": "string"
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["entrypoint", "nodes"],
+      "properties": {
+        "entrypoint": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "type"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "next": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "server"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "server": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

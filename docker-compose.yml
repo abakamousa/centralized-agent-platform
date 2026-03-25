@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  agent-core:
+    build:
+      context: ./agent-core
+    environment:
+      APP_CONFIG_DIR: /app/configurations
+      MCP_AWS_S3_URL: http://mcp-aws-s3:8081
+      MCP_AZURE_SQL_URL: http://mcp-azure-sql:8082
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./configurations:/app/configurations:ro
+    depends_on:
+      - mcp-aws-s3
+      - mcp-azure-sql
+
+  mcp-aws-s3:
+    build:
+      context: ./mcp-servers/mcp-aws-s3
+    ports:
+      - "8081:8081"
+
+  mcp-azure-sql:
+    build:
+      context: ./mcp-servers/mcp-azure-sql
+    ports:
+      - "8082:8082"
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.20.3
+    command: mlflow server --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"

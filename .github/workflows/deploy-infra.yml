@@ -1,0 +1,24 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    paths:
+      - "infrastructure/**"
+      - ".github/workflows/deploy-infra.yml"
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/environments/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Validate
+        run: terraform validate
+      - name: Terraform Plan
+        run: terraform plan -input=false

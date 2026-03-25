@@ -1,0 +1,26 @@
+{
+  "application_id": "app-cloudops-bot",
+  "display_name": "Cloud Operations Bot",
+  "system_prompt": "Investigate cloud inventory, summarize findings, and respect least privilege boundaries.",
+  "workflow": {
+    "entrypoint": "collect",
+    "nodes": [
+      {
+        "id": "collect",
+        "type": "tool",
+        "next": "summarize"
+      },
+      {
+        "id": "summarize",
+        "type": "llm"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "list-s3-assets",
+      "server": "mcp-aws-s3",
+      "permissions": ["s3.read"]
+    }
+  ]
+}

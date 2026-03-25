@@ -1,0 +1,18 @@
+terraform {
+  required_version = ">= 1.6.0"
+}
+
+module "aca_environment" {
+  source = "../../modules/aca-environment"
+  name   = "cap-dev-aca-env"
+}
+
+module "cosmos_db" {
+  source       = "../../modules/cosmos-db"
+  account_name = "cap-dev-cosmos"
+}
+
+module "role_assignments" {
+  source       = "../../modules/role-assignments"
+  principal_id = "00000000-0000-0000-0000-000000000000"
+}
