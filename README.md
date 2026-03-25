@@ -3,6 +3,7 @@
 This repository contains the infrastructure, runtime engine, tool servers, and runtime configurations for a centralized AI agent platform.
 
 ## Architecture Overview
+<img width="1681" height="971" alt="architecture drawio(1)" src="https://github.com/user-attachments/assets/9173661e-8b5a-4c06-9b39-3ab3123009a9" />
 
 The platform is split into four primary domains:
 
