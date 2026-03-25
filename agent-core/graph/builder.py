@@ -4,11 +4,16 @@ from typing import Annotated, Any, TypedDict
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from services.cosmos import CosmosCheckpointSaver, CosmosClientFactory
 from services.mcp_client import MCPClientRegistry
 from services.foundry_client import FoundryModelClient
 
 
 class WorkflowExecutionError(RuntimeError):
+    pass
+
+
+class MCPAuthorizationError(WorkflowExecutionError):
     pass
 
 
@@ -26,11 +31,18 @@ class AgentGraphState(TypedDict, total=False):
 
 
 class DynamicGraphRunner:
-    def __init__(self, observability, foundry_config: dict[str, Any], mcp_config: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        observability,
+        foundry_config: dict[str, Any],
+        mcp_config: dict[str, Any],
+        cosmos_config: dict[str, Any],
+    ) -> None:
         self.observability = observability
         self.mcp_registry = MCPClientRegistry(mcp_config=mcp_config)
         self.foundry_client = FoundryModelClient(foundry_config=foundry_config)
-        self.checkpointer = InMemorySaver()
+        cosmos_checkpointer = CosmosCheckpointSaver(CosmosClientFactory(cosmos_config))
+        self.checkpointer = cosmos_checkpointer if cosmos_checkpointer.enabled else InMemorySaver()
         self.node_handlers: dict[str, Callable[..., Any]] = {
             "classifier": self._run_classifier_node,
             "llm": self._run_llm_node,
@@ -53,6 +65,7 @@ class DynamicGraphRunner:
                 "authorization": identity.authorization,
                 "user_id": identity.user_id,
                 "session_id": identity.session_id,
+                "permissions": identity.permissions,
             },
             "app_config": app_config,
             "messages": [{"role": "user", "content": request.input}],
@@ -85,10 +98,12 @@ class DynamicGraphRunner:
         identity = state["identity"]
         app_config = state["app_config"]
         workflow = app_config.get("workflow", {})
+        authorization_policy = app_config.get("authorization", {})
         nodes = workflow.get("nodes", [])
         entrypoint = workflow.get("entrypoint")
         node_map = {node["id"]: node for node in nodes}
         tools_by_name = {tool["name"]: tool for tool in app_config.get("tools", [])}
+        allowed_mcp_servers = set(authorization_policy.get("allowed_mcp_servers", []))
         execution_trace: list[dict[str, Any]] = []
         visited_nodes: set[str] = set()
 
@@ -133,6 +148,7 @@ class DynamicGraphRunner:
                 state=workflow_state,
                 identity=identity,
                 tools_by_name=tools_by_name,
+                allowed_mcp_servers=allowed_mcp_servers,
             )
             workflow_state["node_outputs"][current_node_id] = node_result
             execution_trace.append(
@@ -188,8 +204,9 @@ class DynamicGraphRunner:
         state: dict[str, Any],
         identity,
         tools_by_name: dict[str, dict[str, Any]],
+        allowed_mcp_servers: set[str],
     ) -> dict[str, Any]:
-        del identity, tools_by_name
+        del identity, tools_by_name, allowed_mcp_servers
         routes = node.get("routes", [])
         default_next = node.get("next")
         selected_next = default_next
@@ -214,6 +231,7 @@ class DynamicGraphRunner:
         state: dict[str, Any],
         identity,
         tools_by_name: dict[str, dict[str, Any]],
+        allowed_mcp_servers: set[str],
     ) -> dict[str, Any]:
         tool_name = node.get("tool")
         if not tool_name:
@@ -225,7 +243,26 @@ class DynamicGraphRunner:
                 f"Tool '{tool_name}' referenced by node '{node['id']}' is not defined"
             )
 
-        client = self.mcp_registry.get(tool["server"])
+        tool_server = tool["server"]
+        if allowed_mcp_servers and tool_server not in allowed_mcp_servers:
+            raise MCPAuthorizationError(
+                f"App is not authorized to use MCP server '{tool_server}'"
+            )
+
+        required_permissions = [str(item) for item in tool.get("permissions", [])]
+        granted_permissions = set(identity.get("permissions", []))
+        missing_permissions = [
+            permission
+            for permission in required_permissions
+            if permission not in granted_permissions
+        ]
+        if missing_permissions:
+            raise MCPAuthorizationError(
+                "Caller is not authorized for tool "
+                f"'{tool_name}'. Missing permissions: {', '.join(missing_permissions)}"
+            )
+
+        client = self.mcp_registry.get(tool_server)
         if client is None:
             return {
                 "tool": tool["name"],
@@ -248,8 +285,9 @@ class DynamicGraphRunner:
         state: dict[str, Any],
         identity,
         tools_by_name: dict[str, dict[str, Any]],
+        allowed_mcp_servers: set[str],
     ) -> dict[str, Any]:
-        del identity, tools_by_name
+        del identity, tools_by_name, allowed_mcp_servers
         prompt = node.get("prompt") or state.get("system_prompt") or "Respond to the request."
         prior_messages = state.get("messages", [])[:-1]
         tool_summaries = [

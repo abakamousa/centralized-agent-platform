@@ -3,6 +3,19 @@ profiles:
     auth0:
       issuer: "https://dev-example.us.auth0.com/"
       audience: "https://centralized-agent-platform/api"
+    guardrails:
+      prompt_injection:
+        enabled: true
+        mode: "block"
+      pii_redaction:
+        enabled: true
+    cosmos:
+      enabled: false
+      endpoint: "https://dev-cosmos.documents.azure.com:443/"
+      database: "centralized-agent-platform-dev"
+      app_container: "app-configurations"
+      memory_container: "agent-memory"
+      credential_mode: "managed_identity"
     foundry:
       endpoint: "https://dev-foundry-resource.openai.azure.com/openai/v1"
       deployment: "gpt-4.1-mini"
@@ -11,6 +24,19 @@ profiles:
     auth0:
       issuer: "https://prod-example.us.auth0.com/"
       audience: "https://centralized-agent-platform/api"
+    guardrails:
+      prompt_injection:
+        enabled: true
+        mode: "block"
+      pii_redaction:
+        enabled: true
+    cosmos:
+      enabled: false
+      endpoint: "https://prod-cosmos.documents.azure.com:443/"
+      database: "centralized-agent-platform-prod"
+      app_container: "app-configurations"
+      memory_container: "agent-memory"
+      credential_mode: "managed_identity"
     foundry:
       endpoint: "https://prod-foundry-resource.openai.azure.com/openai/v1"
       deployment: "gpt-4.1"

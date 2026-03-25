@@ -24,8 +24,9 @@ The request path is:
 5. The workflow is executed dynamically from `workflow.entrypoint`.
 6. Tool nodes call the allowed MCP servers with forwarded user context.
 7. LLM nodes call Azure AI Foundry by using the agent runtime's Microsoft Entra identity.
-8. LangGraph memory stores thread state for the session.
-9. MLflow captures execution traces and metrics.
+8. Guardrails validate user input for prompt injection and optionally redact PII before workflow execution.
+9. LangGraph memory stores thread state for the session, optionally in Cosmos DB.
+10. MLflow captures execution traces and metrics.
 
 ## Repository Layout
 
@@ -82,13 +83,25 @@ application_id:user_id:session_id
 
 That default keeps multiple user sessions separated even for the same application.
 
+## Guardrails
+
+The runtime supports optional request guardrails before any workflow node executes.
+
+- Prompt injection detection can be enabled or disabled per runtime profile.
+- Prompt injection can currently block the request when suspicious patterns are detected.
+- PII redaction can be enabled or disabled per runtime profile.
+- When PII redaction is enabled, common patterns such as emails, phone numbers, SSNs, and card-like values are masked before the workflow runs.
+
+Guardrail settings live in [runtime.yaml](/c:/Users/abaka/Documents/sdk_ai_agent/centralized-agent-platform/agent-core/config/runtime.yaml) under each profile.
+
 ## LangGraph Memory
 
-The runtime uses LangGraph with an in-memory checkpointer.
+The runtime uses LangGraph memory with two modes:
 
-- Reuse the same `thread_id` to continue the same conversation thread.
-- Reuse the same `session_id` to keep requests associated to the same authenticated session.
-- Current memory is in-process only and does not survive container restarts.
+- Cosmos-backed persistent checkpoints when the selected runtime profile enables Cosmos memory.
+- In-memory checkpointing as a fallback when Cosmos persistence is disabled.
+
+Reuse the same `thread_id` to continue the same conversation thread. Reuse the same `session_id` to keep requests associated to the same authenticated session.
 
 ## App Definitions
 
@@ -98,6 +111,7 @@ Each app definition can declare:
 
 - app metadata such as `application_id` and `display_name`
 - a `system_prompt`
+- an `authorization` policy for allowed MCP servers
 - a `workflow.entrypoint`
 - workflow `nodes`
 - tool permissions and server bindings
@@ -109,6 +123,11 @@ Supported workflow node fields currently include:
 - `tool`: tool name for tool nodes
 - `prompt`: response prompt for llm nodes
 - `routes`: optional keyword routing for classifier nodes
+
+MCP authorization is enforced in two layers:
+
+- the app must explicitly list the MCP servers it is allowed to use in `authorization.allowed_mcp_servers`
+- the caller must have the permissions declared on each tool, typically from Auth0 `permissions` or `scope` claims
 
 Example apps already included:
 
@@ -129,6 +148,7 @@ The file currently supports:
 Each profile can define:
 
 - Auth0 issuer and audience
+- Cosmos DB endpoint, database, containers, and enablement flag
 - Azure AI Foundry endpoint, deployment, and API version
 
 Shared sections also define:
@@ -137,6 +157,14 @@ Shared sections also define:
 - MCP server base URLs
 
 The active profile is selected with `AGENT_ENV`.
+
+When Cosmos is enabled in the selected profile:
+
+- app definitions are loaded from Cosmos DB first
+- local `app/*.yaml` files remain as a fallback for missing apps
+- LangGraph checkpoints are stored in the configured Cosmos memory container
+
+The sample runtime profiles keep Cosmos disabled by default until real resources and credentials are configured.
 
 ## Local Development
 
@@ -148,6 +176,14 @@ Run the core service locally:
 cd agent-core
 uv sync
 uv run uvicorn main:app --reload
+```
+
+Run the Angular test console:
+
+```bash
+cd angular-test-ui
+npm install
+npm start
 ```
 
 Validate app definitions:
@@ -181,6 +217,8 @@ The compose stack mounts:
 - `./app` into the runtime for app definitions
 - `./agent-core/config` into the runtime for environment profiles
 
+The Angular UI runs on `http://localhost:4200` and proxies API calls to `agent-core` on `http://localhost:8000`.
+
 ## Example Request
 
 ```json
@@ -194,6 +232,18 @@ The compose stack mounts:
 
 You can also omit `thread_id` and let the runtime derive it from the app, user, and session.
 
+## Web Test UI
+
+An Angular-based test console is available in [angular-test-ui](c:/Users/abaka/Documents/sdk_ai_agent/centralized-agent-platform/angular-test-ui).
+
+It supports:
+
+- selecting a saved app config from the backend
+- loading and inspecting the current app YAML
+- sending requests through simple form fields
+- pasting a YAML config and invoking it through preview mode
+- testing bearer token, session, and thread values without editing backend files
+
 ## CI/CD
 
 This monorepo is designed for path-based automation:
@@ -203,16 +253,4 @@ This monorepo is designed for path-based automation:
 - changes in a specific `mcp-servers/<tool>/` folder deploy only that tool
 - changes in `app/` and `configurations/` validate schemas and sync app definitions to Cosmos DB
 
-## Current State
 
-This repository is a working scaffold for the platform architecture. It includes:
-
-- a dynamic workflow runner
-- Auth0 token validation
-- Azure AI Foundry model access through Entra identity
-- LangGraph thread memory
-- session-aware request handling
-- MCP tool server examples
-- Terraform and GitHub Actions starter structure
-
-The next likely production steps would be persistent memory, real Cosmos DB-backed config loading, richer workflow branching, and stronger authorization checks per app and tool.

@@ -1,6 +1,9 @@
 application_id: app-internal-hr
 display_name: Internal HR Assistant
 system_prompt: Support internal HR workflows while limiting access to approved data sources.
+authorization:
+  allowed_mcp_servers:
+    - mcp-azure-sql
 workflow:
   entrypoint: intake
   nodes:

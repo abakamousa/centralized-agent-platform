@@ -1,6 +1,10 @@
 application_id: app-sales-analytics
 display_name: Sales Analytics Assistant
 system_prompt: Help sales leaders analyze account performance, combine operational data with supporting files, and return concise business insights.
+authorization:
+  allowed_mcp_servers:
+    - mcp-azure-sql
+    - mcp-aws-s3
 workflow:
   entrypoint: classify_request
   nodes:

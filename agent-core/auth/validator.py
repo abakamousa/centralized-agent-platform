@@ -43,11 +43,13 @@ class Auth0TokenValidator:
 
         audience = claims.get("aud")
         audiences = audience if isinstance(audience, list) else [audience] if audience else []
+        permissions = self._extract_permissions(claims)
 
         return RequestIdentity(
             authorization=authorization,
             user_id=str(claims.get("sub", "unknown-user")),
             session_id=self._resolve_session_id(claims, session_id),
+            permissions=permissions,
             issuer=str(claims.get("iss", self.issuer)),
             audience=[str(item) for item in audiences],
             subject=str(claims.get("sub", "unknown-subject")),
@@ -88,3 +90,14 @@ class Auth0TokenValidator:
                 return str(value)
 
         return str(claims.get("sub", "unknown-session"))
+
+    @staticmethod
+    def _extract_permissions(claims: dict[str, Any]) -> list[str]:
+        if isinstance(claims.get("permissions"), list):
+            return [str(item) for item in claims["permissions"]]
+
+        scope = claims.get("scope")
+        if isinstance(scope, str):
+            return [part for part in scope.split() if part]
+
+        return []

@@ -5,6 +5,7 @@ class RequestIdentity(BaseModel):
     authorization: str
     user_id: str
     session_id: str
+    permissions: list[str] = []
     issuer: str
     audience: list[str] = []
     subject: str

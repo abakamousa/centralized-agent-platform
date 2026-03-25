@@ -35,7 +35,9 @@ class RuntimeConfig:
         payload = {
             "environment": environment,
             "auth0": selected_profile.get("auth0", {}),
+            "cosmos": selected_profile.get("cosmos", {}),
             "foundry": selected_profile.get("foundry", {}),
+            "guardrails": selected_profile.get("guardrails", raw_config.get("guardrails", {})),
             "observability": raw_config.get("observability", {}),
             "mcp": raw_config.get("mcp", {}),
         }

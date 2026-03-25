@@ -1,6 +1,9 @@
 application_id: app-cloudops-bot
 display_name: Cloud Operations Bot
 system_prompt: Investigate cloud inventory, summarize findings, and respect least privilege boundaries.
+authorization:
+  allowed_mcp_servers:
+    - mcp-aws-s3
 workflow:
   entrypoint: collect
   nodes:

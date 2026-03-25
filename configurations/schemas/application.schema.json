@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Application Configuration",
   "type": "object",
-  "required": ["application_id", "display_name", "workflow", "tools"],
+  "required": ["application_id", "display_name", "workflow", "tools", "authorization"],
   "properties": {
     "application_id": {
       "type": "string"
@@ -66,6 +66,18 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "required": ["allowed_mcp_servers"],
+      "properties": {
+        "allowed_mcp_servers": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
