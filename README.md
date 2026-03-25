@@ -1,10 +1,11 @@
 # Centralized Agent Platform
 
-This repository contains the infrastructure, runtime engine, tool servers, and GitOps-managed app definitions for a centralized AI agent platform.
 
 ## Overview
 
 The platform is organized into five main domains:
+<img width="1681" height="971" alt="architecture drawio(1)" src="https://github.com/user-attachments/assets/0cc47edb-7041-4ebc-bfb2-0126707e1ac1" />
+
 
 - `infrastructure/`: Terraform modules and environment definitions for Azure Container Apps, Cosmos DB, identities, networking, and observability.
 - `agent-core/`: The Python runtime that authenticates requests, loads app definitions, executes workflow graphs, manages session memory, and calls the hosted LLM.
