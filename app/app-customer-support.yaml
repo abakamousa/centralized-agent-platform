@@ -1,0 +1,22 @@
+application_id: app-customer-support
+display_name: Customer Support Agent
+system_prompt: Help customers by resolving support issues and retrieving the right account context.
+workflow:
+  entrypoint: triage
+  nodes:
+    - id: triage
+      type: classifier
+      label: support-triage
+      next: retrieve_documents
+    - id: retrieve_documents
+      type: tool
+      tool: retrieve-case-documents
+      next: respond
+    - id: respond
+      type: llm
+      prompt: Summarize the support context and propose the next best action for the customer.
+tools:
+  - name: retrieve-case-documents
+    server: mcp-azure-sql
+    permissions:
+      - cases.read

@@ -1,0 +1,22 @@
+application_id: app-internal-hr
+display_name: Internal HR Assistant
+system_prompt: Support internal HR workflows while limiting access to approved data sources.
+workflow:
+  entrypoint: intake
+  nodes:
+    - id: intake
+      type: classifier
+      label: hr-intake
+      next: policy_lookup
+    - id: policy_lookup
+      type: tool
+      tool: lookup-hr-policy
+      next: respond
+    - id: respond
+      type: llm
+      prompt: Provide a concise HR answer grounded in the approved policy information.
+tools:
+  - name: lookup-hr-policy
+    server: mcp-azure-sql
+    permissions:
+      - hr.policy.read

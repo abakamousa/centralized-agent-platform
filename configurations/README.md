@@ -1,12 +1,9 @@
 # Configurations
 
-This directory contains application-specific runtime definitions.
+This directory contains shared configuration assets for the platform.
 
-Configurations define:
+This directory currently holds:
 
-- prompts and runtime metadata
-- workflow layout and node sequencing
-- allowed MCP servers and tools
-- optional domain-specific data hints
+- JSON Schemas for validating application definitions
+- validation utilities used by CI/CD and local development
 
-These files are validated against JSON Schema before being published to Cosmos DB.

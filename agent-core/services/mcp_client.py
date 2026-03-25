@@ -31,14 +31,18 @@ class MCPClient:
 
 
 class MCPClientRegistry:
-    def __init__(self) -> None:
+    def __init__(self, mcp_config: dict[str, Any] | None = None) -> None:
+        config = mcp_config or {}
         self.clients = {
-            "mcp-aws-s3": self._client_from_env("MCP_AWS_S3_URL"),
-            "mcp-azure-sql": self._client_from_env("MCP_AZURE_SQL_URL"),
+            "mcp-aws-s3": self._client_from_value(
+                config.get("aws_s3_url") or os.getenv("MCP_AWS_S3_URL")
+            ),
+            "mcp-azure-sql": self._client_from_value(
+                config.get("azure_sql_url") or os.getenv("MCP_AZURE_SQL_URL")
+            ),
         }
 
-    def _client_from_env(self, env_name: str) -> MCPClient | None:
-        base_url = os.getenv(env_name)
+    def _client_from_value(self, base_url: str | None) -> MCPClient | None:
         return MCPClient(base_url) if base_url else None
 
     def get(self, name: str) -> MCPClient | None:

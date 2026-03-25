@@ -1,0 +1,24 @@
+profiles:
+  dev:
+    auth0:
+      issuer: "https://dev-example.us.auth0.com/"
+      audience: "https://centralized-agent-platform/api"
+    foundry:
+      endpoint: "https://dev-foundry-resource.openai.azure.com/openai/v1"
+      deployment: "gpt-4.1-mini"
+      api_version: "2024-10-21"
+  prod:
+    auth0:
+      issuer: "https://prod-example.us.auth0.com/"
+      audience: "https://centralized-agent-platform/api"
+    foundry:
+      endpoint: "https://prod-foundry-resource.openai.azure.com/openai/v1"
+      deployment: "gpt-4.1"
+      api_version: "2024-10-21"
+
+observability:
+  mlflow_tracking_uri: "http://mlflow:5000"
+
+mcp:
+  aws_s3_url: "http://mcp-aws-s3:8081"
+  azure_sql_url: "http://mcp-azure-sql:8082"

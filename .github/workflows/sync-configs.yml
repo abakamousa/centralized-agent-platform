@@ -3,6 +3,7 @@ name: Sync Configurations
 on:
   push:
     paths:
+      - "app/**"
       - "configurations/**"
       - ".github/workflows/sync-configs.yml"
   workflow_dispatch:
@@ -18,6 +19,6 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
       - name: Validate Configuration Files
-        run: uv run --with jsonschema python configurations/validate_configs.py
+        run: uv run --with jsonschema --with pyyaml python configurations/validate_configs.py
       - name: Sync to Cosmos DB
         run: echo "Replace with Cosmos DB sync step"

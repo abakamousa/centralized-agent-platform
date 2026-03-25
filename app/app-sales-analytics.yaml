@@ -1,0 +1,30 @@
+application_id: app-sales-analytics
+display_name: Sales Analytics Assistant
+system_prompt: Help sales leaders analyze account performance, combine operational data with supporting files, and return concise business insights.
+workflow:
+  entrypoint: classify_request
+  nodes:
+    - id: classify_request
+      type: classifier
+      label: analytics-intake
+      next: load_account_data
+    - id: load_account_data
+      type: tool
+      tool: query-sales-metrics
+      next: load_supporting_exports
+    - id: load_supporting_exports
+      type: tool
+      tool: retrieve-quarterly-export
+      next: respond
+    - id: respond
+      type: llm
+      prompt: Produce a short sales analysis that combines the retrieved metrics and export context.
+tools:
+  - name: query-sales-metrics
+    server: mcp-azure-sql
+    permissions:
+      - sales.metrics.read
+  - name: retrieve-quarterly-export
+    server: mcp-aws-s3
+    permissions:
+      - s3.read

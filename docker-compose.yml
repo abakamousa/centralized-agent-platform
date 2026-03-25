@@ -5,14 +5,14 @@ services:
     build:
       context: ./agent-core
     environment:
-      APP_CONFIG_DIR: /app/configurations
-      MCP_AWS_S3_URL: http://mcp-aws-s3:8081
-      MCP_AZURE_SQL_URL: http://mcp-azure-sql:8082
-      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AGENT_ENV: ${AGENT_ENV:-dev}
+      AGENT_RUNTIME_CONFIG: ${AGENT_RUNTIME_CONFIG:-/app/config/runtime.yaml}
+      APP_CONFIG_DIR: /app/app
     ports:
       - "8000:8000"
     volumes:
-      - ./configurations:/app/configurations:ro
+      - ./app:/app/app:ro
+      - ./agent-core/config:/app/config:ro
     depends_on:
       - mcp-aws-s3
       - mcp-azure-sql

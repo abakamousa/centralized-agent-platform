@@ -32,8 +32,38 @@
               "type": {
                 "type": "string"
               },
+              "label": {
+                "type": "string"
+              },
+              "tool": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "input": {
+                "type": "string"
+              },
               "next": {
                 "type": "string"
+              },
+              "routes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["next"],
+                  "properties": {
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
           }
