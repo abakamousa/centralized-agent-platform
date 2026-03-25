@@ -3,7 +3,6 @@
 This repository contains the infrastructure, runtime engine, tool servers, and runtime configurations for a centralized AI agent platform.
 
 ## Architecture Overview
-<img width="1681" height="971" alt="architecture drawio(1)" src="https://github.com/user-attachments/assets/9173661e-8b5a-4c06-9b39-3ab3123009a9" />
 
 The platform is split into four primary domains:
 
@@ -72,6 +71,3 @@ This monorepo is designed for path-based automation:
 - changes in a specific `mcp-servers/<tool>/` folder deploy only that tool
 - changes in `configurations/` validate schemas and sync configuration to Cosmos DB
 
-## Status
-
-This scaffold provides the initial repository structure, starter service code, sample configurations, and workflow placeholders needed to evolve the platform.
